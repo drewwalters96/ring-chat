@@ -1,21 +1,25 @@
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Properties;
+/*
+ * Created by Andrew Walters for CS4850 at the University of Missouri.
+ *
+ * 4/28/2017
+ *
+ * Ring-Chat is a CLI client-server chat program that utilizes the
+ * the Socket API.
+ */
 
 public class RingServer {
 	public static void main(String[] args) {
 
-		Properties config = new Properties();
+		/* This is used for testing purposes */
+		User.register("Tom", "Tom11");
+
+		// Create chat server
+		ChatServer server = new ChatServer();
 
 		try {
-			// Load server config file
-			FileInputStream is = new FileInputStream("ring-chat/config.properties");
-			config.load(is);
-
-			// Create server
-			ChatServer server = new ChatServer(config.getProperty("SERVER_HOST"), Integer.parseInt(config.getProperty("SERVER_PORT")), Integer.parseInt(config.getProperty("SERVER_TIMEOUT")), Integer.parseInt(config.getProperty("MAX_CLIENTS")));
-		} catch (IOException ex) {
-			System.out.println("There was a problem loading the config file. Please make sure \"config.properties\" exists.");
+			server.startServer();
+		} catch (Exception ex) {
+			System.out.println(ex);
 		}
 	}
 }
