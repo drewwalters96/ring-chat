@@ -11,9 +11,14 @@ public class RingServer {
 	public static void main(String[] args) {
 
 		/* This is used for testing purposes */
-		User.register("Tom", "Tom11");
+        try {
+            User.loadUsers();
+            User.register("Tom", "Tom11");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-		// Create chat server
+        // Create chat server
 		ChatServer server = new ChatServer();
 
 		try {
