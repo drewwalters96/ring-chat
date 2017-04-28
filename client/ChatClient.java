@@ -7,10 +7,11 @@
  * the Socket API.
  */
 
+import com.sun.media.jfxmedia.logging.Logger;
 import java.io.*;
 import java.net.Socket;
 import java.util.Properties;
-import java.util.Scanner;
+import java.util.logging.Level;
 
 public class ChatClient {
     private static String host;
@@ -19,77 +20,89 @@ public class ChatClient {
     private static BufferedReader inStream;
     private static PrintWriter outStream;
 
-    public static void displayMenu() {
-        System.out.println("Ring-Chat options:\n\tlogin <UserID> <Password>\tlog in to the chat server\n\tsend all <message>\t\tsend message to every online user\n\tsend <UserID> <message>\t\tsend message to an online user\n\twho\t\t\t\tdisplay a list of online users\n\tlogout\t\t\t\tlog out of the server\n\n");
+    public static void startClient() {
+        // Load server configuration
+        loadConfiguration();
+
+        // Establish server connection
+        establishServerConnection();
+
+        System.out.println("Welcome to Ring-Chat!\n");
+        try (BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in))) {
+            // Listen for user input and server responses
+            while (!socket.isConnected()) {
+                try {
+                    // Get server input
+                    if (inStream.ready()) {
+                        System.out.println(inStream.readLine());
+                        System.out.print("> ");
+                    }
+
+                    // Get user input and send to server for processing
+                    if (userInput.ready()) {
+                        outStream.println(userInput.readLine());
+                        System.out.print("> ");
+                    }
+                } catch (IOException e) {
+                    System.out.println("[ERROR]: The connection to the server has been interrupted.");
+                }
+            }
+            closeServerConnection();
+        } catch (IOException ioe) {
+            Logger.logMsg(Level.WARNING.intValue(), ioe.getMessage());
+        }
     }
 
-    private static void  establishServerConnection() throws IOException {
 
-        // Establish connection to server with socket and get in/out streams
-        socket = new Socket(host, port);
-        inStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        outStream = new PrintWriter(socket.getOutputStream(), true);
-    }
-
-    private static void loadConfiguration() throws IOException {
+    private static void loadConfiguration() {
         Properties config = new Properties();
 
         // Load server config file
-        FileInputStream is = new FileInputStream(System.getProperty("user.dir") + "/config.properties");
-        config.load(is);
+        try (FileInputStream is = new FileInputStream(System.getProperty("user.dir") + "/config.properties")) {
 
-        // Get config info
-        host = config.getProperty("SERVER_HOST");
-        port = Integer.parseInt(config.getProperty("SERVER_PORT"));
+            config.load(is);
 
-        is.close();
-    }
-
-    public static void sendRequest(String input) {
-        outStream.println(input);
-    }
-
-    public static void startClient() {
-        try {
-            // Load server configuration
-            loadConfiguration();
-        } catch (FileNotFoundException fne) {
-            System.out.println("[Ring-Chat]: Client configuration not found. Please make sure config.properties exists.");
-            System.exit(1);
-        } catch (IOException ioe) {
+            // Get config info
+            host = config.getProperty("SERVER_HOST");
+            port = Integer.parseInt(config.getProperty("SERVER_PORT"));
+        } catch (Exception e) {
             System.out.println("[Ring-Chat]: There is an error in your client configuration. Please update config.properties.");
+            Logger.logMsg(Level.SEVERE.intValue(), e.getMessage());
             System.exit(1);
         }
+    }
 
+    private static void  establishServerConnection() {
+
+        // Establish connection to server with socket and get in/out streams
         try {
-            // Establish server connection
-            establishServerConnection();
-        } catch (IOException ioe) {
-            System.out.println("[Ring-Chat]: A connection could not be established with the specified chat server. Please make sure config.properties is correct.");
+            socket = new Socket(host, port);
+            inStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            outStream = new PrintWriter(socket.getOutputStream(), true);
+        } catch (IOException e) {
+            System.out.println("[Ring-Chat]: A connection could not be made to the specified server. Please make sure it is online.");
+            closeServerConnection();
             System.exit(1);
         }
 
-        // Display menu and listen for input
-        System.out.println("Welcome to Ring-Chat!\n");
-        displayMenu();
-        BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
+    }
 
-        while (!socket.isClosed()) {
-            try {
-                // Get server input
-                if (inStream.ready()) {
-                    System.out.println(inStream.readLine());
-                    System.out.print("> ");
-                }
-
-                // Get user input and send to server for processing
-                if (userInput.ready()) {
-                    sendRequest(userInput.readLine());
-                    System.out.print("> ");
-                }
-            } catch (IOException e) {
-                System.out.println("[Ring-Chat]: The connection to the server has been interrupted. Please try sending your request again.");
+    private static void closeServerConnection() {
+        // Close socket and input/output streams
+        try {
+            if (socket != null) {
+                socket.close();
             }
+
+            if (inStream != null) {
+                inStream.close();
+            }
+
+            if (outStream != null) {
+                outStream.close();
+            }
+        } catch (IOException ioe) {
+            Logger.logMsg(Level.WARNING.intValue(), ioe.getMessage());
         }
     }
 }

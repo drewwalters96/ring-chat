@@ -9,27 +9,13 @@
 
 public class RingServer {
 	public static void main(String[] args) {
-
-		/* This is used for testing purposes */
-        try {
-            User.loadUsers();
-            User.register("Tom", "Tom11");
-            User.register("David", "David22");
-            User.register("Beth", "Beth33");
-            User.register("John", "John44");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        // Create chat server
-		ChatServer server = new ChatServer();
-
 		try {
-			server.start();
+		    // Start chat server
+			ChatServer.start();
 		} catch (Exception ex) {
-			System.out.println(ex);
+			System.out.println("[ERROR]: Server could not be started. Please make sure config.properties exists and the specified port is unbound.");
 		} finally {
-		    server.stop();
+		    ChatServer.stop();
         }
 	}
 }
