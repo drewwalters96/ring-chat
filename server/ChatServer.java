@@ -44,7 +44,7 @@ public class ChatServer {
     }
 
     public static String displayMenu() {
-        return "Ring-Chat options:\n\tlogin <UserID> <Password>\tlog in to the chat server\n\tsend all <message>\t\tsend message to every online user\n\tsend <UserID> <message>\t\tsend message to an online user\n\twho\t\t\t\tdisplay a list of online users\n\tlogout\t\t\t\tlog out of the server\n\n";
+        return "Ring-Chat options:\n\tregister <UserID> <Password>\tcreate a new account with the chat server\n\tlogin <UserID> <Password>\tlog in to the chat server\n\tsend all <message>\t\tsend message to every online user\n\tsend <UserID> <message>\t\tsend message to an online user\n\twho\t\t\t\tdisplay a list of online users\n\tlogout\t\t\t\tlog out of the server\n\n";
     }
 
     public static void processInput(Client client, String input) {
@@ -53,9 +53,26 @@ public class ChatServer {
         String[] args = input.split("\\s");
 
         // Parse input and process request
-        StringBuilder message = new StringBuilder();
         switch (args[0]) {
-            case "login":
+            case "register": {
+                // Verify client is not already logged in
+                if (client.getUser() != null) {
+                    client.notify("[ERROR]: You are already logged in");
+                    break;
+                }
+
+                // Get username, pass and login
+                String userId = args[1];
+                String password = args[2];
+
+                if (User.register(userId, password)) {
+                    client.notify("Registration successful. Please login.");
+                } else {
+                    client.notify("[ERROR]: Username is already in use");
+                }
+                break;
+            }
+            case "login": {
                 try {
                     // Verify client is not already logged in
                     if (client.getUser() != null) {
@@ -81,13 +98,15 @@ public class ChatServer {
                     client.notify("[ERROR]: Invalid input. Please try again.");
                 }
                 break;
-            case "send":
+            }
+            case "send": {
                 try {
                     // Verify client is logged in
                     if (client.getUser() == null) {
                         client.notify("[ERROR]: You must be logged in to send messages.");
                         break;
                     } else {
+                        StringBuilder message = new StringBuilder();
 
                         // Get message from input
                         for (int i = 2; i < args.length; i++) {
@@ -114,6 +133,7 @@ public class ChatServer {
                     client.notify("[ERROR]: Invalid input. Please try again.");
                 }
                 break;
+            }
             case "who":
                 if (client.getUser() != null) {
                     // Get users online
