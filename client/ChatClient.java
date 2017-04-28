@@ -19,7 +19,7 @@ public class ChatClient {
     private static PrintWriter outStream;
 
     public static void displayMenu() {
-        System.out.println("Ring-Chat options:\n    login <UserID> <Password>\n    send all <message>\n    send UserId message\n who\n logout");
+        System.out.println("Ring-Chat options:\n\tlogin <UserID> <Password>\tlog in to the chat server\n\tsend all <message>\t\tsend message to every online user\n\tsend <UserID> <message>\t\tsend message to an online user\n\twho\t\t\t\tdisplay a list of online users\n\tlogout\t\t\t\tlog out of the server\n\n");
     }
 
     private static void  establishServerConnection() throws IOException {
@@ -34,12 +34,14 @@ public class ChatClient {
         Properties config = new Properties();
 
         // Load server config file
-        FileInputStream is = new FileInputStream("ring-chat/config.properties");
+        FileInputStream is = new FileInputStream(System.getProperty("user.dir") + "/config.properties");
         config.load(is);
 
         // Get config info
         host = config.getProperty("SERVER_HOST");
         port = Integer.parseInt(config.getProperty("SERVER_PORT"));
+
+        is.close();
     }
 
     public static void sendRequest(String input) {
@@ -50,18 +52,24 @@ public class ChatClient {
         try {
             // Load server configuration
             loadConfiguration();
+        } catch (FileNotFoundException fne) {
+            System.out.println("[Ring-Chat]: Client configuration not found. Please make sure config.properties exists.");
+            System.exit(1);
         } catch (IOException ioe) {
-            System.out.println("There is an error in your client configuration. Please update config.properties and make sure it exists.");
+            System.out.println("[Ring-Chat]: There is an error in your client configuration. Please update config.properties.");
+            System.exit(1);
         }
 
         try {
             // Establish server connection
             establishServerConnection();
         } catch (IOException ioe) {
-            System.out.println("A connection could not be established with the chat server. Please make sure config.properties is correct.");
+            System.out.println("[Ring-Chat]: A connection could not be established with the specified chat server. Please make sure config.properties is correct.");
+            System.exit(1);
         }
 
         // Display menu and listen for input
+        System.out.println("Welcome to Ring-Chat!\n");
         displayMenu();
         Scanner sc = new Scanner(System.in);
         StringBuilder input = new StringBuilder();
@@ -69,10 +77,11 @@ public class ChatClient {
         while (true) {
             try {
                 if (inStream.ready()) {
+                    System.out.print("> ");
                     System.out.println(inStream.readLine());
                 }
             } catch (IOException e) {
-                System.out.println("The connection to the server has been interrupted. Please try sending your request again.");
+                System.out.println("[Ring-Chat]: The connection to the server has been interrupted. Please try sending your request again.");
             }
 
             while (sc.hasNext()) {
