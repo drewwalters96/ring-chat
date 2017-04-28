@@ -32,9 +32,6 @@ public class Client implements Runnable {
         String input;
 
         try {
-            // Display menu
-            outStream.println(ChatServer.displayMenu());
-
             while (connected) {
                 // Get input from the client
                 if ((input = inStream.readLine()) != null) {

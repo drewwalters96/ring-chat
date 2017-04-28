@@ -30,25 +30,24 @@ public class ChatClient {
         System.out.println("Welcome to Ring-Chat!\n");
         try (BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in))) {
             // Listen for user input and server responses
-            while (true) {
+            while (!socket.isConnected()) {
                 try {
                     // Get server input
                     if (inStream.ready()) {
                         System.out.println(inStream.readLine());
+                        System.out.print("> ");
                     }
 
                     // Get user input and send to server for processing
                     if (userInput.ready()) {
-                        outStream.println(userInput);
+                        outStream.println(userInput.readLine());
+                        System.out.print("> ");
                     }
-
-                    System.out.print("> ");
                 } catch (IOException e) {
                     System.out.println("[ERROR]: The connection to the server has been interrupted.");
-                } finally {
-                    closeServerConnection();
                 }
             }
+            closeServerConnection();
         } catch (IOException ioe) {
             Logger.logMsg(Level.WARNING.intValue(), ioe.getMessage());
         }
@@ -81,7 +80,7 @@ public class ChatClient {
             inStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             outStream = new PrintWriter(socket.getOutputStream(), true);
         } catch (IOException e) {
-            System.out.println("[Ring-Chat]: A connection could not be made to the specified server.");
+            System.out.println("[Ring-Chat]: A connection could not be made to the specified server. Please make sure it is online.");
             closeServerConnection();
             System.exit(1);
         }
@@ -91,9 +90,17 @@ public class ChatClient {
     private static void closeServerConnection() {
         // Close socket and input/output streams
         try {
-            socket.close();
-            inStream.close();
-            outStream.close();
+            if (socket != null) {
+                socket.close();
+            }
+
+            if (inStream != null) {
+                inStream.close();
+            }
+
+            if (outStream != null) {
+                outStream.close();
+            }
         } catch (IOException ioe) {
             Logger.logMsg(Level.WARNING.intValue(), ioe.getMessage());
         }

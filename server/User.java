@@ -10,7 +10,7 @@
 import java.io.*;
 import java.util.ArrayList;
 
-public class User {
+public class User implements Serializable {
     private String userId;
     private String password;
     private static ArrayList<User> users;
