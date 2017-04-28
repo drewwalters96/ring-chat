@@ -119,7 +119,7 @@ public class ChatServer {
                         if (args[1].equals("all")) {
 
                             // Broadcast message
-                            ChatServer.broadcastMessage(senderUserId,"[" + senderUserId + "]: " + message.toString());
+                            ChatServer.broadcastMessage(senderUserId,"[" + senderUserId + "]:" + message.toString());
                         } else {
                             // Get username to send message to
                             String receiverUserId = args[1];
@@ -231,7 +231,7 @@ public class ChatServer {
             if (client.getUser().getUserId().equals(userId)) {
 
                 // Send message to user if they are online
-                client.notify("[" + sender + "]: " + message);
+                client.notify("[" + sender + "]:" + message);
 
                 // Log the action in the server
                 System.out.println("> [" + sender + "] (to " + userId + "): " + message);
@@ -257,6 +257,6 @@ public class ChatServer {
 
 	    // Log action
         String userId = client.getUser().getUserId();
-        broadcastMessage(userId, userId + " logged out");
+        broadcastMessage(userId, userId + " left");
     }
 }
