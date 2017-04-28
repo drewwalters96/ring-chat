@@ -14,7 +14,7 @@ public class User implements Serializable {
     private String userId;
     private String password;
     private static ArrayList<User> users;
-    private static String userFile = System.getProperty("user.dir") + "/server/users.ring";
+    private static String userFile = System.getProperty("user.dir") + "/users.ring";
 
     private User(String userId, String password) {
         this.userId = userId;

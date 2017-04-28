@@ -188,7 +188,7 @@ public class ChatServer {
         Properties config = new Properties();
 
         // Load server config file
-        FileInputStream is = new FileInputStream(System.getProperty("user.dir") + "/server/config.properties");
+        FileInputStream is = new FileInputStream(System.getProperty("user.dir") + "/config.properties");
         config.load(is);
 
         host = InetAddress.getByName(config.getProperty("SERVER_HOST"));
