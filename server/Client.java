@@ -7,11 +7,14 @@
  * the Socket API.
  */
 
+import com.sun.media.jfxmedia.logging.Logger;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.logging.Level;
 
 public class Client implements Runnable {
     private boolean connected = true;
@@ -41,6 +44,8 @@ public class Client implements Runnable {
                 }
             }
 
+            closeConnection();
+
         } catch (IOException e) {
             outStream.println("[Error]: Invalid input. Please try again.");
         }
@@ -49,6 +54,21 @@ public class Client implements Runnable {
     public void stop() {
         // Thread will end safely
         connected = false;
+    }
+
+    private void closeConnection() {
+        try {
+            if (outStream != null) {
+                outStream.print("close");
+                outStream.close();
+            }
+            if (inStream != null) {
+                inStream.close();
+            }
+        } catch (Exception e) {
+            Logger.logMsg(Level.WARNING.intValue(), e.getMessage());
+        }
+
     }
 
     public User getUser() {
