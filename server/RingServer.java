@@ -22,9 +22,11 @@ public class RingServer {
 		ChatServer server = new ChatServer();
 
 		try {
-			server.startServer();
+			server.start();
 		} catch (Exception ex) {
 			System.out.println(ex);
-		}
+		} finally {
+		    server.stop();
+        }
 	}
 }
