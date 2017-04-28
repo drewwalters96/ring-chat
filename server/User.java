@@ -1,77 +1,108 @@
+/*
+ * Created by Andrew Walters for CS4850 at the University of Missouri.
+ *
+ * 4/28/2017
+ *
+ * Ring-Chat is a CLI client-server chat program that utilizes the
+ * the Socket API.
+ */
+
 import java.io.*;
 import java.util.ArrayList;
 
-class User {
-	private String userId;
-	private String password; // CHANGE TO hash
-	private static ArrayList<User> users = null;
-	private static final String USER_FILE = "users.bin";
+public class User {
+    private String userId;
+    private String password;
+    private static ArrayList<User> users;
+    private static String userFile = System.getProperty("user.dir") + "/server/users.ring";
 
-	public User(String userId, String password) {
-		this.userId = userId;
-		this.password = password;
-	}
+    private User(String userId, String password) {
+        this.userId = userId;
+        this.password = password;
+    }
 
-	public static ArrayList<User> getUsers() {
-		if (users == null) {
-			loadUsers();
-		}
+    public static boolean register(String userId, String password) {
+        if (users == null) {
+            loadUsers();
+        }
 
-		return users;
-	}
+        // Create user and append to user list
+        User user =  new User(userId, password);
 
-	public static void loadUsers() {
-		FileInputStream fis = null;
-		ObjectInputStream ois = null;
-		users = new ArrayList<>();
+        // Verify user is not already registered
+        for (User existingUser : users) {
+            if (existingUser.getUserId() == userId) {
+                return false;
+            }
+        }
+        users.add(user);
+        return saveUsers();
+    }
 
-		try {
-			File file = new File(USER_FILE);
-			file.createNewFile();
-			fis = new FileInputStream(file);
-			ois = new ObjectInputStream(fis);
+    public static boolean loadUsers() {
+        FileInputStream fis;
+        ObjectInputStream ois;
+        users = new ArrayList<>();
 
-			User user;
-			while ((user = (User)ois.readObject()) != null) {
-				users.add(user);
-			}
-		} catch (FileNotFoundException e) {
-			// no registered users
-		} catch (IOException e) {
-			System.out.println("There was an error loading the registered users.");
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
-	}
+        // Get user file, create if it doesn't exist
+        File file = new File(userFile);
+        try {
+            file.createNewFile();
 
-	public static void saveUsers() {
-		FileOutputStream fos = null;
-		ObjectOutputStream oos = null;
+            fis = new FileInputStream(file);
+            ois = new ObjectInputStream(fis);
 
-		try {
-			File file = new File(USER_FILE);
-			file.createNewFile();
-			fos = new FileOutputStream(file,false);
-			oos = new ObjectOutputStream(fos);
+            User user;
+            while ((user = (User) ois.readObject()) != null) {
+                users.add(user);
+            }
 
-			for (User user : users) {
-				oos.writeObject(user);
-			}
-		} catch (IOException e) {
-			System.out.println("There was an error saving the registered users.");
-		} finally {
-			close(oos);
-			close(fos);
-		}
-	}
+            ois.close();
+            fis.close();
+        } catch (Exception e) {
+            return false;
+        }
 
-	private static void close(Closeable stream) {
-		if (stream != null) {
-			try {
-				stream.close();
-			} catch (IOException e) {
-				System.out.println("There was an error saving the registered users.");
-			}
-		}
-	}
+        return true;
+    }
+
+    public static boolean saveUsers() {
+
+        // Create new user file if it doesn't exist
+        File file = new File(userFile);
+        try {
+            file.createNewFile();
+            // File will be overridden if it exists
+            FileOutputStream fos = new FileOutputStream(file, false);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+
+            // Write every user to file
+            for (User user : users) {
+                oos.writeObject(user);
+            }
+
+            oos.close();
+            fos.close();
+        } catch (Exception e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public static ArrayList<User> getUsers() {
+        if (users == null) {
+            loadUsers();
+        }
+
+        return users;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public String getPassword() {
+        return password;
+    }
 }
