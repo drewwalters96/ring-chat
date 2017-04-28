@@ -25,10 +25,14 @@ public class ChatServer {
 	private static ArrayList<Client> clients;
 
 	public static void broadcastMessage(String message) {
+
 	    // Send message to every client
 	    for (Client client : clients) {
             client.notify(message);
         }
+
+        // Log in server console
+        System.out.println(message);
     }
 
     public static ArrayList<User> getOnlineUsers() {
@@ -42,9 +46,11 @@ public class ChatServer {
     }
 
     public static User login(String userId, String password) {
+
 	    // Verify use information is correct
         for (User user : User.getUsers()) {
-            if (user.getUserId() == userId && user.getPassword() == password) {
+            if (user.getUserId().equals(userId) && user.getPassword().equals(password)) {
+                broadcastMessage(userId + " logged in");
                 return user; // User is added to Client
             }
         }
@@ -54,18 +60,23 @@ public class ChatServer {
     public static void logout(Client client) {
 	    // Remove client from active clients list
 	    clients.remove(client);
+
+	    // Log action
+        broadcastMessage(client.getUserId() + " logged out");
     }
 
     public static boolean sendMessage(String userId, String message) {
 
-	    // Send message to user if they are online
+	    // Check for userId in list of clients
 	    for (Client client : clients) {
-	        if (client.getUserId() == userId) {
+	        if (client.getUserId().equals(userId)) {
+
+                // Send message to user if they are online
 	            client.notify(message);
+
+	            // Log the action in the server
+                System.out.println(message + " --> " + userId);
 	            return true;
-            }
-            else {
-	            return false;
             }
         }
         return false;
@@ -94,6 +105,7 @@ public class ChatServer {
 		// Create server socket and update status
         serverSocket = new ServerSocket(port, timeout, host);
         serverOnline = true;
+        System.out.println("[Ring-Chat]: Server listening on " + host + ":" + port);
 
         // Accept clients while server is online
         clients = new ArrayList<>();
@@ -109,16 +121,16 @@ public class ChatServer {
     public static void stop() {
         serverOnline = false;
 
-        // Safely stop remaining client threads
-        for (Client client : clients) {
-            client.stop();
-        }
-
-        // Unbind socket
         try {
+            // Safely stop remaining client threads
+            for (Client client : clients) {
+                client.stop();
+            }
+
+            // Unbind socket
             serverSocket.close();
-        } catch (IOException e) {
-            System.out.println("Server did not shutdown successfully.");
+        } catch (Exception e) {
+            System.out.println("[Ring-Chat]: Server did not shutdown successfully.");
         }
     }
 
