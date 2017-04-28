@@ -213,7 +213,7 @@ public class ChatServer {
         }
 
         // Log in server console
-        System.out.println(message);
+        System.out.println("> " + message);
     }
 
     private static boolean sendMessage(User sender, String userId, String message) {
@@ -226,7 +226,7 @@ public class ChatServer {
                 client.notify("[" + sender.getUserId() + "]: " + message);
 
                 // Log the action in the server
-                System.out.println("[" + sender.getUserId() + "] (to " + userId + "): " + message);
+                System.out.println("> [" + sender.getUserId() + "] (to " + userId + "): " + message);
                 return true;
             }
         }
