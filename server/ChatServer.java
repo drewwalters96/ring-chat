@@ -34,12 +34,21 @@ public class ChatServer {
 
         // Accept clients while server is online
         clients = new ArrayList<>();
-        while (serverOnline && clients.size() <= maxClients) {
+        while (serverOnline) {
             Client client = new Client(serverSocket.accept());
-            clients.add(client);
-            new Thread(client).start();
 
-            client.notify("[Ring-Chat]: Connection to server established. Please log in.");
+            if (clients.size() < maxClients) {
+                // Add client to active list and start thread
+                clients.add(client);
+                new Thread(client).start();
+
+                // Notify they are connected and must log in
+                client.notify("[Ring-Chat]: Connection to server established. Please log in.");
+            } else {
+                // Server is full, stop them right here
+                client.notify("[Ring-Chat]: The chat server is currently full. Please try again later.");
+                client.stop();
+            }
         }
     }
 

@@ -43,9 +43,6 @@ public class Client implements Runnable {
                     ChatServer.processInput(this, input);
                 }
             }
-
-            closeConnection();
-
         } catch (IOException e) {
             outStream.println("[Error]: Invalid input. Please try again.");
         }
@@ -54,6 +51,9 @@ public class Client implements Runnable {
     public void stop() {
         // Thread will end safely
         connected = false;
+
+        // Close client connection
+        closeConnection();
     }
 
     private void closeConnection() {
