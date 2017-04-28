@@ -66,9 +66,9 @@ public class ChatClient {
             // Get config info
             host = config.getProperty("SERVER_HOST");
             port = Integer.parseInt(config.getProperty("SERVER_PORT"));
-        } catch (IOException ioe) {
+        } catch (Exception e) {
             System.out.println("[Ring-Chat]: There is an error in your client configuration. Please update config.properties.");
-            Logger.logMsg(Level.SEVERE.intValue(), ioe.getMessage());
+            Logger.logMsg(Level.SEVERE.intValue(), e.getMessage());
             System.exit(1);
         }
     }
