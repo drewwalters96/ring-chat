@@ -1,55 +1,116 @@
+/*
+ * Created by Andrew Walters for CS4850 at the University of Missouri.
+ *
+ * 4/28/2017
+ *
+ * Ring-Chat is a CLI client-server chat program that utilizes the
+ * the Socket API.
+ */
+
+import java.io.FileInputStream;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.Properties;
 
-class ChatServer {
-	private InetAddress host;
-	private int port;
-	private int timeout;
-	private int maxClients;
+public class ChatServer {
+	private static InetAddress host;
+	private static int port;
+	private static int timeout;
+	private static int maxClients;
+    private static boolean serverOnline = false;
 
-	private ArrayList<User> users;
+	private static ArrayList<Client> clients;
 
-	public ChatServer(String host, int port, int timeout, int maxClients) {
-		try {
-			this.host = InetAddress.getByName(host);
-		} catch (UnknownHostException ex) {
-			System.out.println("The specified host is invalid. Please update in \"config.properties\".");
-		}
-		this.timeout = timeout;
-		this.port = port;
-		this.maxClients = maxClients;
+	public static void broadcastMessage(String message) {
+	    // Send message to every client
+	    for (Client client : clients) {
+            client.notify(message);
+        }
+    }
+
+    public static ArrayList<User> getOnlineUsers() {
+	    ArrayList<User> onlineUsers = new ArrayList<>();
+
+	    for (Client client : clients) {
+	        onlineUsers.add(client.getUser());
+        }
+
+        return onlineUsers;
+    }
+
+    public static User login(String userId, String password) {
+	    // Verify use information is correct
+        for (User user : User.getUsers()) {
+            if (user.getUserId() == userId && user.getPassword() == password) {
+                return user; // User is added to Client
+            }
+        }
+        return null; // CAUTION: returns null if login failed
+    }
+
+    public static void logout(Client client) {
+	    // Remove client from active clients list
+	    clients.remove(client);
+    }
+
+    public static boolean sendMessage(String userId, String message) {
+
+	    // Send message to user if they are online
+	    for (Client client : clients) {
+	        if (client.getUserId() == userId) {
+	            client.notify(message);
+	            return true;
+            }
+            else {
+	            return false;
+            }
+        }
+        return false;
+    }
+
+	private static void loadConfiguration() throws Exception {
+		Properties config = new Properties();
+
+		// Load server config file
+		FileInputStream is = new FileInputStream(System.getProperty("user.dir") + "/server/config.properties");
+		config.load(is);
+
+		host = InetAddress.getByName(config.getProperty("SERVER_HOST"));
+		port = Integer.parseInt(config.getProperty("SERVER_PORT"));
+		timeout = Integer.parseInt(config.getProperty("SERVER_TIMEOUT"));
+		maxClients = Integer.parseInt(config.getProperty("MAX_CLIENTS"));
+
+		is.close();
 	}
 
-	public void startServer() {
-		try {
-			// Read registered users from file
-			User.loadUsers();
+	public static void startServer() throws Exception {
+		// Load server configuration
+		loadConfiguration();
 
-			// Open server socket and listen for client
-			ServerSocket serverSocket = new ServerSocket(port, timeout, host);
-			Socket clientSocket = serverSocket.accept();
+		// Create server socket and update status
+        ServerSocket serverSocket = new ServerSocket(port, timeout, host);
+        serverOnline = true;
 
-		} catch (SecurityException securityEx) {
-			System.out.println("ERROR: A security policy is preventing the server from starting.");
-		} catch (IllegalArgumentException iaEx) {
-			System.out.println("ERROR: The specified port number is invalid. Please choose an inactive port number between 0 and 65535.");
-		} catch (SocketTimeoutException stEx) {
-			System.out.println("ERROR: A timeout occured.");
-		} catch (Exception ex) {
-			System.out.println("An error occured while starting the chat server.");
-		}
+        // Accept clients while server is online
+        clients = new ArrayList<>();
+        while (serverOnline && clients.size() <= maxClients) {
+            Client client = new Client(serverSocket.accept());
+            clients.add(client);
+            new Thread(client).start();
 
+            client.notify("[Ring-Chat]: Connection to server established. Please log in.");
+        }
 	}
 
-	public InetAddress getHost() {
+	public static InetAddress getHost() {
 		return host;
 	}
 
-	public int getPort() {
+	public static int getPort() {
 		return port;
 	}
 
-	public int getMaxClients() {
+	public static int getMaxClients() {
 		return maxClients;
 	}
 }
