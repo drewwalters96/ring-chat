@@ -15,6 +15,7 @@ import java.util.Scanner;
 public class ChatClient {
     private static String host;
     private static Integer port;
+    private static Socket socket;
     private static BufferedReader inStream;
     private static PrintWriter outStream;
 
@@ -25,7 +26,7 @@ public class ChatClient {
     private static void  establishServerConnection() throws IOException {
 
         // Establish connection to server with socket and get in/out streams
-        Socket socket = new Socket(host, port);
+        socket = new Socket(host, port);
         inStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         outStream = new PrintWriter(socket.getOutputStream(), true);
     }
@@ -71,25 +72,24 @@ public class ChatClient {
         // Display menu and listen for input
         System.out.println("Welcome to Ring-Chat!\n");
         displayMenu();
-        Scanner sc = new Scanner(System.in);
-        StringBuilder input = new StringBuilder();
+        BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
 
-        while (true) {
+        while (!socket.isClosed()) {
             try {
+                // Get server input
                 if (inStream.ready()) {
-                    System.out.print("> ");
                     System.out.println(inStream.readLine());
+                    System.out.print("> ");
+                }
+
+                // Get user input and send to server for processing
+                if (userInput.ready()) {
+                    sendRequest(userInput.readLine());
+                    System.out.print("> ");
                 }
             } catch (IOException e) {
                 System.out.println("[Ring-Chat]: The connection to the server has been interrupted. Please try sending your request again.");
             }
-
-            while (sc.hasNext()) {
-                input.append(sc.next());
-            }
-
-            // Send request to server for processing
-            sendRequest(input.toString());
         }
     }
 }
