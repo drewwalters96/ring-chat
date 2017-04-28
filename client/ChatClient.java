@@ -14,6 +14,7 @@ import java.util.Properties;
 import java.util.logging.Level;
 
 public class ChatClient {
+    private static boolean connected = true;
     private static String host;
     private static Integer port;
     private static Socket socket;
@@ -30,16 +31,20 @@ public class ChatClient {
         System.out.println("Welcome to Ring-Chat!\n");
         try (BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in))) {
             // Listen for user input and server responses
-            while (true) {
+            while (connected) {
                 try {
                     // Get server input
                     if (inStream.ready()) {
                         String response = inStream.readLine();
-                        if (response.equals("close")) {
-                            break;
+
+                        // Verify server has not closed connection
+                        if (!response.equals("CONNECTION_TERMINATED")) {
+                            // Display server response
+                            System.out.println(response);
+                            System.out.print("> ");
+                        } else {
+                            connected = false;
                         }
-                        System.out.println(response);
-                        System.out.print("> ");
                     }
 
                     // Get user input and send to server for processing
