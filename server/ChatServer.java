@@ -8,6 +8,7 @@
  */
 
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.Properties;
@@ -18,6 +19,8 @@ public class ChatServer {
 	private static int timeout;
 	private static int maxClients;
     private static boolean serverOnline = false;
+
+    private static ServerSocket serverSocket;
 
 	private static ArrayList<Client> clients;
 
@@ -83,12 +86,13 @@ public class ChatServer {
 		is.close();
 	}
 
-	public static void startServer() throws Exception {
+	public static void start() throws Exception {
+	    System.out.println("[Ring-Chat]: Starting server...");
 		// Load server configuration
 		loadConfiguration();
 
 		// Create server socket and update status
-        ServerSocket serverSocket = new ServerSocket(port, timeout, host);
+        serverSocket = new ServerSocket(port, timeout, host);
         serverOnline = true;
 
         // Accept clients while server is online
@@ -101,6 +105,22 @@ public class ChatServer {
             client.notify("[Ring-Chat]: Connection to server established. Please log in.");
         }
 	}
+
+    public static void stop() {
+        serverOnline = false;
+
+        // Safely stop remaining client threads
+        for (Client client : clients) {
+            client.stop();
+        }
+
+        // Unbind socket
+        try {
+            serverSocket.close();
+        } catch (IOException e) {
+            System.out.println("Server did not shutdown successfully.");
+        }
+    }
 
 	public static InetAddress getHost() {
 		return host;
