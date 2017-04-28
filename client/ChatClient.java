@@ -30,11 +30,15 @@ public class ChatClient {
         System.out.println("Welcome to Ring-Chat!\n");
         try (BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in))) {
             // Listen for user input and server responses
-            while (!socket.isConnected()) {
+            while (true) {
                 try {
                     // Get server input
                     if (inStream.ready()) {
-                        System.out.println(inStream.readLine());
+                        String response = inStream.readLine();
+                        if (response.equals("close")) {
+                            break;
+                        }
+                        System.out.println(response);
                         System.out.print("> ");
                     }
 
@@ -47,7 +51,11 @@ public class ChatClient {
                     System.out.println("[ERROR]: The connection to the server has been interrupted.");
                 }
             }
+
+            // Close connections and exit
             closeServerConnection();
+            System.out.println("Connection closed.");
+            System.exit(0);
         } catch (IOException ioe) {
             Logger.logMsg(Level.WARNING.intValue(), ioe.getMessage());
         }

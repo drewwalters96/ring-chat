@@ -34,12 +34,21 @@ public class ChatServer {
 
         // Accept clients while server is online
         clients = new ArrayList<>();
-        while (serverOnline && clients.size() <= maxClients) {
+        while (serverOnline) {
             Client client = new Client(serverSocket.accept());
-            clients.add(client);
-            new Thread(client).start();
 
-            client.notify("[Ring-Chat]: Connection to server established. Please log in.");
+            if (clients.size() < maxClients) {
+                // Add client to active list and start thread
+                clients.add(client);
+                new Thread(client).start();
+
+                // Notify they are connected and must log in
+                client.notify("[Ring-Chat]: Connection to server established. Please log in.");
+            } else {
+                // Server is full, stop them right here
+                client.notify("[Ring-Chat]: The chat server is currently full. Please try again later.");
+                client.stop();
+            }
         }
     }
 
@@ -107,6 +116,7 @@ public class ChatServer {
                         break;
                     } else {
                         StringBuilder message = new StringBuilder();
+                        String senderUserId = client.getUser().getUserId();
 
                         // Get message from input
                         for (int i = 2; i < args.length; i++) {
@@ -118,14 +128,14 @@ public class ChatServer {
                         if (args[1].equals("all")) {
 
                             // Broadcast message
-                            ChatServer.broadcastMessage("[" + client.getUser().getUserId() + "]: " + message.toString());
+                            ChatServer.broadcastMessage(senderUserId,"[" + senderUserId + "]:" + message.toString());
                         } else {
                             // Get username to send message to
-                            String userId = args[1];
+                            String receiverUserId = args[1];
 
                             // Send message to user
-                            if (!ChatServer.sendMessage(client.getUser(), userId, message.toString())) {
-                                client.notify("[ERROR]: " + userId + " is not online");
+                            if (!ChatServer.sendMessage(senderUserId, receiverUserId, message.toString())) {
+                                client.notify("[ERROR]: " + receiverUserId + " is not online");
                             }
                         }
                     }
@@ -150,6 +160,11 @@ public class ChatServer {
                 }
                 break;
             case "logout":
+                if (client.getUser() == null) {
+                    client.notify("[ERROR]: You are not logged in.");
+                    break;
+                }
+
                 // Chat server removes client
                 logout(client);
 
@@ -182,7 +197,7 @@ public class ChatServer {
         Properties config = new Properties();
 
         // Load server config file
-        FileInputStream is = new FileInputStream(System.getProperty("user.dir") + "/server/config.properties");
+        FileInputStream is = new FileInputStream(System.getProperty("user.dir") + "/config.properties");
         config.load(is);
 
         host = InetAddress.getByName(config.getProperty("SERVER_HOST"));
@@ -198,35 +213,37 @@ public class ChatServer {
         // Verify user information is correct
         for (User user : User.getUsers()) {
             if (user.getUserId().equals(userId) && user.getPassword().equals(password)) {
-                broadcastMessage(userId + " joined"); // Broadcast that user has joined chat room
+                broadcastMessage(userId, userId + " joined"); // Broadcast that user has joined chat room
                 return user; // User is added to Client
             }
         }
         return null; // CAUTION: returns null if login failed
     }
 
-	private static void broadcastMessage(String message) {
+	private static void broadcastMessage(String sender, String message) {
 
-	    // Send message to every client
+	    // Send message to every client except sender
 	    for (Client client : clients) {
-            client.notify(message);
+	        if (client.getUser() != null && !client.getUser().getUserId().equals(sender)) {
+                client.notify(message);
+            }
         }
 
         // Log in server console
-        System.out.println(message);
+        System.out.println("> " + message);
     }
 
-    private static boolean sendMessage(User sender, String userId, String message) {
+    private static boolean sendMessage(String sender, String userId, String message) {
 
         // Check for userId in list of clients
         for (Client client : clients) {
             if (client.getUser().getUserId().equals(userId)) {
 
                 // Send message to user if they are online
-                client.notify("[" + sender.getUserId() + "]: " + message);
+                client.notify("[" + sender + "]:" + message);
 
                 // Log the action in the server
-                System.out.println("[" + sender.getUserId() + "] (to " + userId + "): " + message);
+                System.out.println("> [" + sender + "] (to " + userId + "): " + message);
                 return true;
             }
         }
@@ -248,6 +265,7 @@ public class ChatServer {
 	    clients.remove(client);
 
 	    // Log action
-        broadcastMessage(client.getUser().getUserId() + " logged out");
+        String userId = client.getUser().getUserId();
+        broadcastMessage(userId, userId + " left");
     }
 }
