@@ -14,6 +14,9 @@ public class RingServer {
         try {
             User.loadUsers();
             User.register("Tom", "Tom11");
+            User.register("David", "David22");
+            User.register("Beth", "Beth33");
+            User.register("John", "John44");
         } catch (Exception e) {
             e.printStackTrace();
         }
