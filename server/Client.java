@@ -39,42 +39,62 @@ public class Client implements Runnable {
         // Parse input and process request
         switch (args[0]) {
             case "login":
-                // Get username, pass and login
-                String username = args[1];
-                String password = args[2];
+                try {
+                    // Verify client is not already logged in
+                    if (user != null) {
+                        notify("[Error]: You are already logged in");
+                        break;
+                    }
 
-                // CAUTION: returns null if login failed.
-                if ((user = ChatServer.login(username, password)) == null) {
-                    notify("Username or password incorrect.");
-                }
-                else {
-                    notify("Welcome, " + user.getUserId() + "! You have been successfully logged in.");
-                }
-                break;
-            case "send":
-                if (user != null) {
-                    if (args[1] == "all") {
-                        // Get message from input
-                        for (String arg : args) {
-                            message.append(arg);
-                        }
+                    // Get username, pass and login
+                    String username = args[1];
+                    String password = args[2];
 
-                        // Broadcast message
-                        ChatServer.broadcastMessage(message.toString());
+                    System.out.println(username + password);
+                    // CAUTION: returns null if login failed.
+                    if ((user = ChatServer.login(username, password)) == null) {
+                        notify("Username or password incorrect.");
                     }
                     else {
-                        // Get username to send message to
-                        String userId = args[1];
+                        notify("Welcome, " + user.getUserId() + "! You have been successfully logged in.");
+                    }
+                } catch (Exception e) {
+                    notify("Invalid input. Please try again.");
+                }
+
+                break;
+            case "send":
+                try {
+                    if (user != null) {
+                        // Append userId
+                        message.append("[" + user.getUserId() + "]:");
 
                         // Get message from input
-                        for (String arg : args) {
-                            message.append(arg);
+                        for (int i = 2; i < args.length; i++) {
+                            message.append(" ");
+                            message.append(args[i]);
                         }
 
-                        ChatServer.sendMessage(userId, message.toString());
+                        // Determine if the message is for another user or everyone
+                        if (args[1].equals("all")) {
+
+                            // Broadcast message
+                            ChatServer.broadcastMessage(message.toString());
+                        }
+                        else {
+                            // Get username to send message to
+                            String userId = args[1];
+
+                            // Send message to user
+                            if (!ChatServer.sendMessage(userId, message.toString())) {
+                                notify("[Error]: " + userId + " is not online");
+                            }
+                        }
+                    } else {
+                        notify("[Error]: You must be logged in to send messages.");
                     }
-                } else {
-                    notify("You must be logged in to send messages.");
+                } catch (Exception e) {
+                    notify("[Error]: Invalid input. Please try again.");
                 }
                 break;
             case "who":
@@ -91,7 +111,7 @@ public class Client implements Runnable {
                     notify(response.toString());
                 }
                 else {
-                    notify("You must be logged in to see a list of online users.");
+                    notify("[Error]: You must be logged in to see a list of online users.");
                 }
                 break;
 
@@ -103,7 +123,7 @@ public class Client implements Runnable {
                 stop();
                 break;
             default:
-                notify("Invalid input. Please try again.");
+                notify("[Error]: Invalid input. Please try again.");
                 break;
         }
     }
@@ -128,7 +148,7 @@ public class Client implements Runnable {
             }
 
         } catch (IOException e) {
-            outStream.println("Invalid input. Please try again.");
+            outStream.println("[Error]: Invalid input. Please try again.");
         }
     }
 
