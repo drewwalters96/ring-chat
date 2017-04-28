@@ -137,7 +137,7 @@ public class ChatServer {
             case "who":
                 if (client.getUser() != null) {
                     // Get users online
-                    ArrayList<User> users = ChatServer.getOnlineUsers();
+                    ArrayList<String> users = ChatServer.getOnlineUsers();
 
                     // Create response containing online users to send to client
                     StringBuilder response = new StringBuilder("Online users: ");
@@ -233,11 +233,11 @@ public class ChatServer {
         return false;
     }
 
-    private static ArrayList<User> getOnlineUsers() {
-	    ArrayList<User> onlineUsers = new ArrayList<>();
+    private static ArrayList<String> getOnlineUsers() {
+	    ArrayList<String> onlineUsers = new ArrayList<>();
 
 	    for (Client client : clients) {
-	        onlineUsers.add(client.getUser());
+	        onlineUsers.add(client.getUser().getUserId());
         }
 
         return onlineUsers;
