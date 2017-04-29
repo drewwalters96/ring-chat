@@ -50,7 +50,15 @@ public class ChatClient {
                     // Get user input and send to server for processing
                     if (userInput.ready()) {
                         outStream.println(userInput.readLine());
-                        System.out.print("> ");
+                        String response = inStream.readLine();
+                        System.out.println("> ");
+                        if (response == null) {
+                          System.out.println("[ERROR]: The connection to the server has been interrupted.");
+                          break;
+                        }
+                        else if (!response.equals("ACK")) {
+                          System.out.println(response);
+                        }
                     }
                 } catch (IOException e) {
                     System.out.println("[ERROR]: The connection to the server has been interrupted.");
