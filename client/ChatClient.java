@@ -51,7 +51,7 @@ public class ChatClient {
                     if (userInput.ready()) {
                         outStream.println(userInput.readLine());
                         String response = inStream.readLine();
-                        System.out.println("> ");
+                        System.out.print("> ");
                         if (response == null) {
                           System.out.println("[ERROR]: The connection to the server has been interrupted.");
                           break;

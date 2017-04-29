@@ -58,8 +58,8 @@ public class ChatServer {
 
     public static void processInput(Client client, String input) {
 
-				// Acknowledge message
-				client.notify("ACK");
+        // Acknowledge message
+        client.notify("ACK");
 				
         // Split input string into args
         String[] args = input.split("\\s");
@@ -78,7 +78,7 @@ public class ChatServer {
                 String password = args[2];
 
 								if (userId.length() > 31 || password.length() < 4 || password.length() > 8) {
-										client.notify("[ERROR]: Username must be less than 32 characters and password must be betwen 4-8 characters.");
+										client.notify("[ERROR]: Username must be less than 32 characters and password must be between 4-8 characters.");
 										break;
 								}
 
