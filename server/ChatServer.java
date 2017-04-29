@@ -58,12 +58,15 @@ public class ChatServer {
 
     public static void processInput(Client client, String input) {
 
+				// Acknowledge message
+				client.notify("ACK");
+				
         // Split input string into args
         String[] args = input.split("\\s");
 
         // Parse input and process request
         switch (args[0]) {
-            case "register": {
+            case "newuser": {
                 // Verify client is not already logged in
                 if (client.getUser() != null) {
                     client.notify("[ERROR]: You are already logged in");
@@ -73,6 +76,11 @@ public class ChatServer {
                 // Get username, pass and login
                 String userId = args[1];
                 String password = args[2];
+
+								if (userId.length() > 31 || password.length() < 4 || password.length() > 8) {
+										client.notify("[ERROR]: Username must be less than 32 characters and password must be betwen 4-8 characters.");
+										break;
+								}
 
                 if (User.register(userId, password)) {
                     client.notify("Registration successful. Please login.");
