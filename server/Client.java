@@ -59,7 +59,7 @@ public class Client implements Runnable {
     private void closeConnection() {
         try {
             if (outStream != null) {
-                outStream.print("close");
+                outStream.print("CONNECTION_TERMINATED");
                 outStream.close();
             }
             if (inStream != null) {
