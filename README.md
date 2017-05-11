@@ -12,17 +12,17 @@ The server runs a chat room service, manages all the clients and distributes the
 
 ## Usage
 
-# Starting the Server
+### Starting the Server
 - Edit server/config.properties (localhost by default)
 - Compile RingServer.java: `javac server/RingServer.java`
 - Start the server: `java RingServer`
 
-# Starting the Client
+### Starting the Client
 - Edit client/config.properties (localhost by default)
 - Compile RingClient.java `javac client/RingClient.java`
 - Start the client: `RingClient.java`
 
-# Client Commands
+### Client Commands
 - login `login <username> <password>`
 - logout `logout`
 - Create a new user account `newuser <username> <password>`
